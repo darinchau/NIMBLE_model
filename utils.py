@@ -132,7 +132,7 @@ def load_nimble_dict(name: str = "assets/NIMBLE_DICT_9137.pkl", device=None):
         if not os.path.exists(name):
             raise NotImplementedError("Please run this script on a machine with GPU to convert the pickle file to CPU version")
         with open(name, 'rb') as f:
-            pm_dict = torch.load(f)
+            pm_dict = torch.load(f, weights_only=True)
     else:
         if not os.path.exists(name):
             raise NotImplementedError("Please download the textured pickle file from the google drive")

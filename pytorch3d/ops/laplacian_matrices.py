@@ -176,7 +176,7 @@ def norm_laplacian(
 
     V = verts.shape[0]
     # pyre-fixme[16]: Module `sparse` has no attribute `FloatTensor`.
-    L = torch.sparse.FloatTensor(e01, w01, (V, V))
+    L = torch.sparse_coo_tensor(e01, w01, (V, V))
     L = L + L.t()
 
     return L

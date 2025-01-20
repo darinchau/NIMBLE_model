@@ -189,7 +189,10 @@ class NIMBLELayer(torch.nn.Module):
 
         skin_v = mesh_v[:, self.skin_v_sep:, :]
 
-        tex_img = self.generate_texture(texture_param)
+        if texture_param is not None:
+            tex_img = self.generate_texture(texture_param)
+        else:
+            tex_img = None
 
         if handle_collision:
             skin_v = self.handle_collision(mesh_v)
