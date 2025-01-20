@@ -7,9 +7,9 @@
 # pyre-unsafe
 
 import torch
-from pytorch3d.ops import norm_laplacian
-from pytorch3d.structures.meshes import Meshes
-from pytorch3d.structures import utils as struct_utils
+from ..ops.laplacian_matrices import norm_laplacian
+from ..structures.meshes import Meshes
+from ..structures import utils as struct_utils
 
 
 # ------------------------ Mesh Smoothing ------------------------ #
