@@ -151,7 +151,7 @@ def batch_to_tensor_device(batch, device):
             batch[key] = batch_to_tensor_device(batch[key], device)
         elif isinstance(batch[key], torch.Tensor):
             batch[key] = batch[key].to(device)
-    
+
     return batch
 
 def quat2aa(quats):
@@ -267,7 +267,7 @@ def th_scalemat_scale(th_scale_bone):
         for s in range(th_scale_bone.shape[1]):
             th_scale_bone_mat[:, s, 0, 0] = th_scale_bone[:, s]
             th_scale_bone_mat[:, s, 1, 1] = th_scale_bone[:, s]
-            th_scale_bone_mat[:, s, 2, 2] = th_scale_bone[:, s] 
+            th_scale_bone_mat[:, s, 2, 2] = th_scale_bone[:, s]
     return th_scale_bone_mat
 
 
@@ -287,7 +287,7 @@ def vertices2landmarks(
     lmk_faces_idx,
     lmk_bary_coords
 ):
-    ''' 
+    '''
         Calculates landmarks by barycentric interpolation
         Parameters
         ----------
@@ -305,7 +305,7 @@ def vertices2landmarks(
         -------
         landmarks: torch.tensor BxLx3, dtype = torch.float32
             The coordinates of the landmarks for each mesh in the batch
-        
+
         Modified from https://github.com/vchoutas/smplx
     '''
     # Extract the indices of the vertices for each face
@@ -338,11 +338,11 @@ def save_textured_nimble(fname, skin_v, tex_img):
 
     obj_name_skin = fname.parent / (fname.stem + "_skin.obj")
     mtl_name = obj_name_skin.with_suffix(".mtl")
-    
+
     # texture image
     tex_name_diffuse = fname.parent / (fname.stem + "_diffuse.png")
     tex_img = np.uint8(tex_img * 255)
-    
+
     cv2.imwrite(str(tex_name_diffuse), tex_img[:,:, :3])
     cv2.imwrite(str(fname.parent / (fname.stem + "_normal.png")), tex_img[:,:,3:6])
     cv2.imwrite(str(fname.parent / (fname.stem + "_spec.png")), tex_img[:,:,6:])
@@ -356,20 +356,22 @@ def save_textured_nimble(fname, skin_v, tex_img):
     # obj
     f_uv = np.load(textured_pkl, allow_pickle=True)
     with open(obj_name_skin, "w") as f:
-        f.write("mtllib {:s}\n".format(mtl_name.name))    
+        f.write("mtllib {:s}\n".format(mtl_name.name))
         for v in skin_v:
             f.writelines("v {:.5f} {:.5f} {:.5f}\n".format(v[0], v[1], v[2]))
         f.writelines(f_uv)
 
     print("save to", fname)
 
-
-
-
 def smooth_mesh(mesh_p3d):
-    mesh_p3d_smooth = pytorch3d.ops.mesh_filtering.taubin_smoothing(mesh_p3d, num_iter=3)
+    mesh_p3d_smooth = pytorch3d.ops.taubin_smoothing(mesh_p3d, num_iter=3)
     target_mv = mesh_p3d_smooth.verts_padded()
     nan_mv = torch.isnan(target_mv)
-    target_mv[nan_mv] = mesh_p3d.verts_padded()[nan_mv]  
+    target_mv[nan_mv] = mesh_p3d.verts_padded()[nan_mv]
     mesh_p3d_smooth_fixnan = Meshes(target_mv, mesh_p3d.faces_padded())
     return mesh_p3d_smooth_fixnan
+
+def save_mesh(mesh, path):
+    import pickle
+    with open(path, "wb") as f:
+        pickle.dump(mesh, f)

@@ -17,7 +17,7 @@ class NIMBLELayer(torch.nn.Module):
 
         identity_rot = torch.eye(3).to(self.device)
         self.register_buffer("identity_rot", identity_rot)
-        
+
         self.shape_ncomp = shape_ncomp
         self.pose_ncomp = pose_ncomp
         self.tex_ncomp = tex_ncomp
@@ -62,7 +62,7 @@ class NIMBLELayer(torch.nn.Module):
             self.register_buffer("nimble_mano_vreg_fidx", nimble_mano_vreg['lmk_faces_idx'])
             self.register_buffer("nimble_mano_vreg_bc", nimble_mano_vreg['lmk_bary_coords'])
         else:
-            assert "nimble_mano_vreg is None!!" 
+            assert "nimble_mano_vreg is None!!"
 
         # Kinematic chain params
         kinetree = JOINT_PARENT_ID_DICT
@@ -74,17 +74,17 @@ class NIMBLELayer(torch.nn.Module):
     def bone_v(self):
         bone_v = self.th_verts[:,:self.bone_v_sep,:]
         return bone_v
-   
+
     @property
     def muscle_v(self):
         muscle_v = self.th_verts[:,self.bone_v_sep:self.skin_v_sep,:]
         return muscle_v
-  
+
     @property
     def skin_v(self):
         skin_v = self.th_verts[:,self.skin_v_sep:,:]
         return skin_v
-    
+
 
     def nimble_to_mano(self, verts, is_surface=False):
         skin_f = self.skin_f
@@ -121,7 +121,7 @@ class NIMBLELayer(torch.nn.Module):
         else:
             betas_real = betas
         th_v_shaped = (self.shape_basis[:shape_ncomp].T @ betas_real.T).view(-1, 3, batch_size).permute(2, 0, 1) + self.th_verts.unsqueeze(0).repeat(batch_size, 1, 1)
-        
+
         jreg_bone_joints = torch.matmul(self.jreg_bone, th_v_shaped[:, :self.bone_v_sep])
         return th_v_shaped, jreg_bone_joints
 
@@ -150,7 +150,7 @@ class NIMBLELayer(torch.nn.Module):
     def generate_texture(self, alpha, normalized=True):
         if alpha is None:
             return self.tex_mean.unsqueeze(0).repeat(batch_size, 1)
-            
+
         batch_size = alpha.shape[0]
         assert self.tex_ncomp == alpha.shape[1]
 
@@ -185,7 +185,7 @@ class NIMBLELayer(torch.nn.Module):
         th_v_shaped, jreg_joints = self.generate_hand_shape(shape_param,normalized=True)
 
         mesh_v, bone_joints = self.forward_full(th_v_shaped, full_pose, None, jreg_joints, self.sw, self.pbs)
-        
+
         skin_v = mesh_v[:, self.skin_v_sep:, :]
 
         tex_img = self.generate_texture(texture_param)
@@ -252,7 +252,7 @@ class NIMBLELayer(torch.nn.Module):
                  padd_zero.view(1, 1).repeat(batch_size, 1)], 1)
             tmp = torch.bmm(th_results[i], joint_j.unsqueeze(2))
             th_results2[:, :, :, i] = th_results[i] - th_pack(tmp)
-        
+
 
         skinning_weight = skinning_weight.reshape(1, -1, STATIC_JOINT_NUM)
         th_verts = self.compute_warp(batch_size, points_pose_bs, skinning_weight, th_results2)
@@ -280,7 +280,7 @@ class NIMBLELayer(torch.nn.Module):
             root_position = root_trans.view(batch_size, 1, 3)
             center_joint = th_jtr[:, ROOT_JOINT_IDX].unsqueeze(1)
             offset = root_position - center_joint
-        
+
             th_jtr = th_jtr + offset
             th_verts = th_verts + offset
 
@@ -301,7 +301,7 @@ class NIMBLELayer(torch.nn.Module):
             inside_verts_normal = floating_verts_normals[i][skin_surf_in_muscle].reshape(-1, 3)
 
             ## moving target using ray-triangle hit
-            locations, index_ray, index_tri = mesh_muscle.ray.intersects_location(inside_verts.squeeze().detach().cpu().numpy(), 
+            locations, index_ray, index_tri = mesh_muscle.ray.intersects_location(inside_verts.squeeze().detach().cpu().numpy(),
                                             inside_verts_normal.squeeze().detach().cpu().numpy())
             locations = locations + 2* inside_verts_normal.squeeze().detach().cpu().numpy()[index_ray] # outside 2 mm
             index_ray = torch.from_numpy(index_ray).to(self.device)
@@ -316,7 +316,7 @@ class NIMBLELayer(torch.nn.Module):
             soft_result = floating_verts[i] + (self.skin_v_node_weight.unsqueeze(-1) * skin_v_offset).sum(1)
             final_result = 0.7 * hard_result + 0.3 * soft_result
             floating_verts[i] = final_result
-            
+
         return floating_verts
 
 
@@ -326,6 +326,5 @@ class NIMBLELayer(torch.nn.Module):
         interp_meshes_skin = Meshes(skin_v, self.skin_f.repeat(skin_v.shape[0], 1, 1))
 
         skin_v = self.mesh_collision(skin_v, interp_meshes_skin.verts_normals_padded(), muscle_v, self.muscle_f)
-       
+
         return skin_v
-        
