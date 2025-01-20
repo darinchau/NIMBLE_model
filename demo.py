@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from NIMBLELayer import NIMBLELayer
 
-from utils import batch_to_tensor_device, save_textured_nimble, smooth_mesh, save_mesh
+from utils import batch_to_tensor_device, save_textured_nimble, smooth_mesh, save_mesh, load_nimble_dict
 import pytorch3d
 from pytorch3d.structures.meshes import Meshes
 
@@ -12,20 +12,11 @@ if __name__ == "__main__":
 
     pm_dict_name = r"assets/NIMBLE_DICT_9137.pkl"
     tex_dict_name = r"assets/NIMBLE_TEX_DICT.pkl"
+    mano_vreg_name = r"assets/NIMBLE_MANO_VREG.pkl"
 
-    if os.path.exists(pm_dict_name):
-        pm_dict = np.load(pm_dict_name, allow_pickle=True)
-        pm_dict = batch_to_tensor_device(pm_dict, device)
-
-    if os.path.exists(tex_dict_name):
-        tex_dict = np.load(tex_dict_name, allow_pickle=True)
-        tex_dict = batch_to_tensor_device(tex_dict, device)
-
-    if os.path.exists(r"assets/NIMBLE_MANO_VREG.pkl"):
-        nimble_mano_vreg = np.load("assets/NIMBLE_MANO_VREG.pkl", allow_pickle=True)
-        nimble_mano_vreg = batch_to_tensor_device(nimble_mano_vreg, device)
-    else:
-        nimble_mano_vreg=None
+    pm_dict = load_nimble_dict(pm_dict_name, device)
+    tex_dict = load_nimble_dict(tex_dict_name, device)
+    nimble_mano_vreg = load_nimble_dict(mano_vreg_name, device)
 
     nlayer = NIMBLELayer(pm_dict, tex_dict, device, use_pose_pca=True, pose_ncomp=30, shape_ncomp=20, nimble_mano_vreg=nimble_mano_vreg)
 

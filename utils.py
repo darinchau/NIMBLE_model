@@ -3,6 +3,7 @@
     https://reyuwei.github.io/proj/nimble
 '''
 
+import os
 import torch
 import pytorch3d
 import numpy as np
@@ -114,6 +115,33 @@ for key in JOINT_ID_NAME_DICT:
             JOINT_ID_BONE_DICT[key] = key_b
             BONE_ID_JOINT_DICT[key_b] = key
             JOINT_ID_BONE[key_b] = key
+
+def load_textured_pickle():
+    textured_pkl = "assets/NIMBLE_TEX_FUV.pkl"
+    if not os.path.exists(textured_pkl):
+        raise NotImplementedError("Please download the textured pickle file from the google drive")
+    f_uv = np.load(textured_pkl, allow_pickle=True)
+    return f_uv
+
+def load_nimble_dict(name: str = "assets/NIMBLE_DICT_9137.pkl", device=None):
+    import pickle
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    if torch.device(device) == torch.device("cpu"):
+        name = name.replace(".pkl", "_cpu.pkl")
+        if not os.path.exists(name):
+            raise NotImplementedError("Please run this script on a machine with GPU to convert the pickle file to CPU version")
+        with open(name, 'rb') as f:
+            pm_dict = torch.load(f)
+    else:
+        if not os.path.exists(name):
+            raise NotImplementedError("Please download the textured pickle file from the google drive")
+        with open(name, 'rb') as f:
+            pm_dict = pickle.load(f)
+        pm_dict = batch_to_tensor_device(pm_dict, "cpu")
+        torch.save(pm_dict, name.replace(".pkl", "_cpu.pkl"))
+
+    return pm_dict
 
 def dis_to_weight(dismat, thres_corres, node_sigma):
     dismat[dismat==0] = 1e5
@@ -271,7 +299,6 @@ def th_scalemat_scale(th_scale_bone):
             th_scale_bone_mat[:, s, 2, 2] = th_scale_bone[:, s]
     return th_scale_bone_mat
 
-
 def th_pack(tensor):
     batch_size = tensor.shape[0]
     padding = tensor.new_zeros((batch_size, 4, 3))
@@ -279,8 +306,6 @@ def th_pack(tensor):
     pack_list = [padding, tensor]
     pack_res = torch.cat(pack_list, 2)
     return pack_res
-
-
 
 def vertices2landmarks(
     vertices,
@@ -327,8 +352,6 @@ def vertices2landmarks(
         batch_size, -1, 3, 3)
     landmarks = torch.einsum('blfi,lf->bli', [lmk_vertices, lmk_bary_coords])
     return landmarks
-
-
 
 def save_textured_nimble(fname, skin_v, tex_img):
     ### batch_size = 1

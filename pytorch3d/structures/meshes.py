@@ -853,7 +853,12 @@ class Meshes:
             refresh: Set to True to force recomputation of face areas.
                      Default: False.
         """
-        from ..ops.mesh_face_areas_normals import mesh_face_areas_normals
+        try:
+            from ..ops.mesh_face_areas_normals import mesh_face_areas_normals
+        except ImportError as e:
+            raise NotImplementedError(
+                "The module `mesh_face_areas_normals` is not yet implemented. Good luck implementing this from the source C code :)"
+            ) from e
 
         if not (
             refresh
