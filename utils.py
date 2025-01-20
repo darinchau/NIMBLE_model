@@ -126,8 +126,9 @@ def dis_to_weight(dismat, thres_corres, node_sigma):
 
 def batch_to_tensor_device(batch, device):
     def to_tensor(arr):
-        if isinstance(arr, int):
-            return arr
+        assert not isinstance(arr, int)
+        # if isinstance(arr, int):
+        #     return arr
         if isinstance(arr, torch.Tensor):
             return arr.to(device)
         if arr.dtype == np.int64:
@@ -342,6 +343,7 @@ def save_textured_nimble(fname, skin_v, tex_img):
     # texture image
     tex_name_diffuse = fname.parent / (fname.stem + "_diffuse.png")
     tex_img = np.uint8(tex_img * 255)
+    assert isinstance(tex_img, np.ndarray)
 
     cv2.imwrite(str(tex_name_diffuse), tex_img[:,:, :3])
     cv2.imwrite(str(fname.parent / (fname.stem + "_normal.png")), tex_img[:,:,3:6])
@@ -366,6 +368,9 @@ def save_textured_nimble(fname, skin_v, tex_img):
 def smooth_mesh(mesh_p3d):
     mesh_p3d_smooth = pytorch3d.ops.taubin_smoothing(mesh_p3d, num_iter=3)
     target_mv = mesh_p3d_smooth.verts_padded()
+
+    # Type checking
+    assert target_mv is not None
     nan_mv = torch.isnan(target_mv)
     target_mv[nan_mv] = mesh_p3d.verts_padded()[nan_mv]
     mesh_p3d_smooth_fixnan = Meshes(target_mv, mesh_p3d.faces_padded())

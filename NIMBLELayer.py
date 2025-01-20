@@ -148,8 +148,9 @@ class NIMBLELayer(torch.nn.Module):
         return full_pose
 
     def generate_texture(self, alpha, normalized=True):
-        if alpha is None:
-            return self.tex_mean.unsqueeze(0).repeat(batch_size, 1)
+        assert alpha is not None
+        # if alpha is None:
+        #     return self.tex_mean.unsqueeze(0).repeat(batch_size, 1)
 
         batch_size = alpha.shape[0]
         assert self.tex_ncomp == alpha.shape[1]

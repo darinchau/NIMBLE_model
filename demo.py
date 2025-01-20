@@ -47,7 +47,11 @@ if __name__ == "__main__":
     skin_mano_v = nlayer.nimble_to_mano(skin_v, is_surface=True)
 
     tex_img = tex_img.detach().cpu().numpy()
-    skin_v_smooth = skin_p3dmesh.verts_padded().detach().cpu().numpy()
+    skin_v_smooth = skin_p3dmesh.verts_padded()
+
+    # Type checking
+    assert skin_v_smooth is not None
+    skin_v_smooth = skin_v_smooth.detach().cpu().numpy()
     bone_joints = bone_joints.detach().cpu().numpy()
 
     output_folder = "output"
